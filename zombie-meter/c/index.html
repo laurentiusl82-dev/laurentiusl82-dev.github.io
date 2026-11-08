@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Zombie Meter challenge</title>
+<meta property="og:title" content="Zombie Meter — can you beat me? 🥊">
+<meta property="og:description" content="30-second reflex challenge. How zombie are you today?">
+<style>
+  :root { --bg: #130B26; --card: #21143F; --text: #F5F0FF; --muted: #AA9CD6; --accent: #7CFF4F; --pink: #FF4FA3; }
+  body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background: var(--bg); color: var(--text); }
+  main { max-width: 480px; margin: 0 auto; padding: 40px 16px; text-align: center; }
+  .logo { font-size: 30px; font-weight: 800; letter-spacing: 1px; text-shadow: 0 0 14px var(--accent); }
+  .logo span { color: var(--accent); }
+  .card { background: var(--card); border: 2px solid var(--pink); border-radius: 24px; padding: 24px 16px; margin: 24px 0; }
+  .ms { font-size: 56px; font-weight: 800; color: var(--pink); margin: 8px 0; }
+  p { color: var(--muted); line-height: 1.5; }
+  .btn { display: block; padding: 16px; border-radius: 18px; font-weight: 700; font-size: 18px; text-decoration: none; margin: 12px 0; }
+  .primary { background: var(--accent); color: #130B26; }
+  .secondary { border: 2px solid var(--muted); color: var(--text); }
+  small { color: var(--muted); }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <div class="logo">🧟 ZOMBIE <span>METER</span></div>
+  <div class="card">
+    <p id="friend"></p>
+    <div class="ms" id="ms"></div>
+    <p id="ask"></p>
+  </div>
+  <a class="btn primary" id="open" href="#"></a>
+  <a class="btn secondary" id="store" href="https://play.google.com/store/apps/details?id=app.zombiemeter"></a>
+  <p><small id="note"></small></p>
+  <p><small><a href="../privacy/">Privacy</a> · No cookies, no tracking.</small></p>
+</main>
+<script>
+  // Everything comes from the link and stays in this page: no cookies, no analytics, no requests.
+  var T = {
+    en: ['Your friend got', 'Can you beat it? 30-second reflex challenge.', 'Open in Zombie Meter', 'Get Zombie Meter', 'For fun only. Not a medical test.', 'How zombie are you today? Take the 30-second reflex challenge.'],
+    ro: ['Prietenul tău a obținut', 'Îl poți bate? Provocarea de reflexe de 30 de secunde.', 'Deschide în Zombie Meter', 'Instalează Zombie Meter', 'Doar pentru distracție. Nu este un test medical.', 'Cât de zombi ești azi? Încearcă provocarea de reflexe de 30 de secunde.'],
+    es: ['Tu amigo hizo', '¿Puedes ganarle? Reto de reflejos de 30 segundos.', 'Abrir en Zombie Meter', 'Descargar Zombie Meter', 'Solo por diversión. No es una prueba médica.', '¿Cuán zombi estás hoy? Prueba el reto de reflejos de 30 segundos.'],
+    pt: ['Seu amigo fez', 'Consegue vencer? Desafio de reflexos de 30 segundos.', 'Abrir no Zombie Meter', 'Baixar o Zombie Meter', 'Só por diversão. Não é um teste médico.', 'Quão zumbi você está hoje? Faça o desafio de reflexos de 30 segundos.'],
+    fr: ['Ton ami a fait', 'Tu peux le battre ? Défi réflexes de 30 secondes.', 'Ouvrir dans Zombie Meter', 'Télécharger Zombie Meter', 'Juste pour s’amuser. Pas un test médical.', 'À quel point es-tu zombie aujourd’hui ? Fais le défi réflexes de 30 secondes.'],
+    de: ['Dein Freund hat', 'Schlägst du das? 30-Sekunden-Reflex-Challenge.', 'In Zombie Meter öffnen', 'Zombie Meter holen', 'Nur zum Spaß. Kein medizinischer Test.', 'Wie viel Zombie steckt heute in dir? Mach die 30-Sekunden-Reflex-Challenge.'],
+    it: ['Il tuo amico ha fatto', 'Riesci a batterlo? Sfida di riflessi da 30 secondi.', 'Apri in Zombie Meter', 'Scarica Zombie Meter', 'Solo per divertimento. Non è un test medico.', 'Quanto sei zombie oggi? Fai la sfida di riflessi da 30 secondi.'],
+    pl: ['Twój znajomy uzyskał', 'Pokonasz go? 30-sekundowe wyzwanie na refleks.', 'Otwórz w Zombie Meter', 'Pobierz Zombie Meter', 'Tylko dla zabawy. To nie jest badanie medyczne.', 'Ile masz dziś w sobie z zombie? Podejmij 30-sekundowe wyzwanie na refleks.'],
+    zh: ['你的朋友成绩', '你能打败它吗？30 秒反应挑战。', '在 Zombie Meter 中打开', '获取 Zombie Meter', '仅供娱乐，不是医学检测。', '你今天有多僵尸？来试试 30 秒反应挑战。'],
+    ja: ['友だちの記録', '勝てるかな？30秒の反射神経チャレンジ。', 'Zombie Meterで開く', 'Zombie Meterを入手', '娯楽目的のみ。医療検査ではありません。', '今日のゾンビ度は？30秒の反射神経チャレンジに挑戦しよう。']
+  };
+  var lang = (navigator.language || 'en').slice(0, 2).toLowerCase();
+  var t = T[lang] || T.en;
+  document.documentElement.lang = T[lang] ? lang : 'en';
+
+  var params = new URLSearchParams(location.search);
+  var ms = parseInt(params.get('ms') || '', 10);
+  var valid = ms >= 100 && ms <= 1500;
+  var lv = /^(fresh|toasted|koala|sloth|walker|zombie)$/.test(params.get('lv') || '') ? params.get('lv') : '';
+  var d = /^\d{4}-\d{2}-\d{2}$/.test(params.get('d') || '') ? params.get('d') : '';
+
+  var q = [];
+  if (valid) q.push('ms=' + ms);
+  if (valid && lv) q.push('lv=' + lv);
+  if (valid && d) q.push('d=' + d);
+  var path = 'challenge' + (q.length ? '?' + q.join('&') : '');
+  var store = 'https://play.google.com/store/apps/details?id=app.zombiemeter';
+
+  if (valid) {
+    document.getElementById('friend').textContent = t[0];
+    document.getElementById('ms').textContent = ms + ' ms';
+    document.getElementById('ask').textContent = t[1];
+  } else {
+    document.getElementById('ms').textContent = '🧟';
+    document.getElementById('ask').textContent = t[5];
+  }
+  document.getElementById('note').textContent = t[4];
+  document.getElementById('store').textContent = t[3];
+
+  var open = document.getElementById('open');
+  open.textContent = t[2];
+  // Android: open the app if installed, otherwise go to the store.
+  open.href = /android/i.test(navigator.userAgent)
+    ? 'intent://' + path + '#Intent;scheme=zombiemeter;package=app.zombiemeter;S.browser_fallback_url=' + encodeURIComponent(store) + ';end'
+    : 'zombiemeter://' + path;
+</script>
+</body>
+</html>
